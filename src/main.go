@@ -5,7 +5,11 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io/ioutil"
+	"log"
+	"net/http"
+
+	// "os"
 	"strings"
 	"time"
 
@@ -72,7 +76,7 @@ func initialModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return m.spinner.Tick
+	return tea.Batch(spinner.Tick)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -110,7 +114,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		cmd := m.progress.IncrPercent(0.25)
-		return m, cmd
+		return m, tea.Batch(tickCmd(), cmd)
 
 	case progress.FrameMsg:
 		progressModel, cmd := m.progress.Update(msg)
@@ -133,7 +137,7 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 	if m.loading && !m.quitting {
-		str += anotherStyle.Render(fmt.Sprintf("\n\n%s Loading forever...press q to quit\n\n",
+		str += anotherStyle.Render(fmt.Sprintf("\n%s Loading forever...press q to quit\n",
 			m.spinner.View()))
 		str += "\n"
 		str += anotherStyle.Render(lipgloss.NewStyle().Italic(true).Render("Hello, kitty."))
@@ -150,11 +154,23 @@ func (m model) View() string {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
-	if err := p.Start(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	// p := tea.NewProgram(initialModel())
+
+	//start CLI gorutian
+	// go p.Start()
+
+	get, err := http.Get(`https://www.agemys.com/play/20220082?playid=3_4`)
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Print(get.Body)
+	bytes, errRead := ioutil.ReadAll(get.Body)
+	if errRead != nil {
+		log.Fatal(err)
+	}
+
+	log.Print(string(bytes))
+
 }
 
 func tickCmd() tea.Cmd {
