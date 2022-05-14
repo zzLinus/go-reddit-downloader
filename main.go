@@ -5,11 +5,6 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
 
 	// "os"
 	"strings"
@@ -20,6 +15,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/zzLinus/GoTUITODOList/downloader"
 )
 
 type errMsg error
@@ -143,37 +139,14 @@ func (m model) View() string {
 	return str
 }
 
-func download() {
-	video, err := os.Create("SPY.mp4")
-
-	get, err := http.Get("https://v.redd.it/8akffrc6fqx81/DASH_720.mp4")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Print(get.Body)
-	bytes, errRead := ioutil.ReadAll(get.Body)
-	if errRead != nil {
-		log.Fatal(errRead)
-	}
-	defer func() {
-		video.Close()
-		get.Body.Close()
-	}()
-
-	written, err := io.Copy(video, get.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(written)
-
-	fmt.Print(string(bytes))
-}
-
 func main() {
-	go download()
+	url := "https://v.redd.it/8akffrc6fqx81/DASH_720.mp4"
+	err := downloader.Download(url)
+	if err != nil {
+		panic(err)
+	}
 	p := tea.NewProgram(initialModel())
-	//start CLI gorutian
+	// start CLI gorutian
 	p.Start()
 }
 
