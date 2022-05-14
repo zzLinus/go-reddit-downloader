@@ -1,7 +1,6 @@
 package downloader
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -27,14 +26,5 @@ func Download(url string) error {
 	fmt.Println("Response status:", resp.Status)
 	io.Copy(videoFile, resp.Body)
 
-	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-		return err
-	}
 	return nil
 }
