@@ -16,7 +16,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zzLinus/GoTUITODOList/downloader"
-	"github.com/zzLinus/GoTUITODOList/extractor"
+	// "github.com/zzLinus/GoTUITODOList/extractor"
 )
 
 type errMsg error
@@ -141,9 +141,9 @@ func (m model) View() string {
 }
 
 func main() {
-	rowURL := "https://www.reddit.com/r/space/comments/uj8sod/a_couple_of_days_ago_i_visited_this_place_an/"
-	url := extractor.Extractor(rowURL)
-	err := downloader.Download(url)
+	rowURL := "https://v.redd.it/8akffrc6fqx81/DASH_720.mp4"
+	// url := extractor.Extractor(rowURL)
+	err := downloader.Download(rowURL)
 	if err != nil {
 		panic(err)
 	}
