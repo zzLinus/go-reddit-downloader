@@ -10,15 +10,49 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/zzLinus/GoTUITODOList/downloader"
+	"github.com/zzLinus/GoTUITODOList/extractor"
 )
 
 type errMsg error
 type tickMsg time.Time
+type respMsg int
 
 const (
 	padding  = 2
 	maxWidth = 80
 )
+
+var (
+	videoDownloader *downloader.Downloader
+	rowURLExtractor *extractor.Extractor
+)
+
+var (
+	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	cursorStyle         = focusedStyle.Copy()
+	noStyle             = lipgloss.NewStyle()
+	helpStyle           = blurredStyle.Copy()
+	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+	focusedButton       = focusedStyle.Copy().Render("[ Submit ]")
+	style               = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("63"))
+	blurredButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+	spinnerStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).PaddingLeft(4)
+	anotherStyle        = lipgloss.NewStyle().PaddingLeft(4).BorderStyle(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color("204"))
+)
+
+type model struct {
+	spinner    spinner.Model
+	border     lipgloss.Border
+	loading    bool
+	progress   progress.Model
+	textInput  textinput.Model
+	cursorMode textinput.CursorMode
+	quitting   bool
+	err        error
+}
 
 func New() *tea.Program {
 	p := tea.NewProgram(initialModel())
@@ -26,42 +60,32 @@ func New() *tea.Program {
 }
 
 // Add a purple, rectangular border
-var style = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("63"))
-
-// Set a rounded, yellow-on-purple border to the top and left
-var anotherStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.RoundedBorder()).
-	BorderForeground(lipgloss.Color("204"))
-
-var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
-
-type model struct {
-	spinner   spinner.Model
-	border    lipgloss.Border
-	loading   bool
-	progress  progress.Model
-	textInput textinput.Model
-	quitting  bool
-	err       error
-}
 
 func initialModel() model {
-	s := spinner.New()
+
 	ti := textinput.New()
-	ti.Placeholder = "plz input some text"
+	ti.Placeholder = "pase an url that support by use"
 	ti.Focus()
 	ti.CharLimit = 80
 	ti.Width = 20
+	ti.CursorStyle = focusedStyle
+
+	cm := textinput.CursorBlink
+
+	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Italic(true)
+
 	pro := progress.New(progress.WithDefaultGradient())
-	return model{spinner: s, textInput: ti, loading: true, progress: pro}
+
+	return model{spinner: s, textInput: ti, loading: false, progress: pro, cursorMode: cm}
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(spinner.Tick)
+	videoDownloader = downloader.New()
+	rowURLExtractor = extractor.New()
+	return tea.Batch(textinput.Blink, spinner.Tick)
+
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -69,12 +93,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "esc", "ctrl+c":
+		case "esc", "ctrl+c":
 			m.quitting = true
 			return m, tea.Batch(tickCmd())
 		case "enter":
-			m.loading = false
-			return m, nil
+			m.loading = true
+			return m, tea.Batch(m.spinner.Tick,
+				func() tea.Msg {
+					// "https://v.redd.it/8akffrc6fqx81/DASH_720.mp4"
+					rowURL := m.textInput.Value()
+					statusCode, err := videoDownloader.Download(rowURL)
+					if err != nil {
+						panic(err)
+					}
+					return respMsg(statusCode)
+				})
 		default:
 			var cmd tea.Cmd
 			if !m.loading {
@@ -92,6 +125,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errMsg:
 		m.err = msg
+		return m, nil
+
+	case respMsg:
+		if msg == 200 {
+			m.loading = false
+		}
 		return m, nil
 
 	case tickMsg:
@@ -117,24 +156,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var str string = ""
-	pad := strings.Repeat(" ", padding)
+
 	if m.err != nil {
 		return m.err.Error()
 	}
-	if m.loading && !m.quitting {
-		str += anotherStyle.Render(fmt.Sprintf("\n%s Loading forever...press q to quit\n",
-			m.spinner.View()))
-		str += "\n"
-		str += anotherStyle.Render(lipgloss.NewStyle().Italic(true).Render("Hello, kitty."))
+
+	if m.loading {
+		str += spinnerStyle.Render(fmt.Sprintf("\n%s Downloading content\n", m.spinner.View()))
 	}
-	if !m.loading && !m.quitting {
-		str += fmt.Sprintf("Show me what you got\n\n%s", m.textInput.View())
+
+	if !m.loading {
+		str += fmt.Sprintf("input or paset url here\n%s", m.textInput.View())
 	}
 
 	if m.quitting {
+		pad := strings.Repeat(" ", padding)
 		return "\n" +
 			pad + m.progress.View() + "\n\n"
 	}
+
 	return str
 }
 

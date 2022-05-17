@@ -1,30 +1,35 @@
 package downloader
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 )
 
-func Download(url string) error {
+type Downloader struct {
+}
+
+func New() *Downloader {
+	return &Downloader{}
+}
+
+func (*Downloader) Download(url string) (int, error) {
 
 	videoFile, err := os.Create("baofengxuehao.mp4")
 	if err != nil {
 		log.Fatal("failed to create files")
-		return err
+		return 0, err
 	}
 
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("Response status:", resp.Status)
 	io.Copy(videoFile, resp.Body)
 
-	return nil
+	return resp.StatusCode, nil
 }

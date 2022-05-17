@@ -9,7 +9,14 @@ import (
 	"github.com/zzLinus/GoTUITODOList/fakeheaders"
 )
 
-func Extractor(rowURL string) string {
+type Extractor struct {
+}
+
+func New() *Extractor {
+	return &Extractor{}
+}
+
+func (*Extractor) RowURLExtractor(rowURL string) string {
 	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet, rowURL, nil)
