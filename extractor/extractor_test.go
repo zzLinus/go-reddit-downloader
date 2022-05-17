@@ -6,6 +6,11 @@ import (
 )
 
 func TestExtrac(t *testing.T) {
+	var path [2]string
+
+	path[0] = "index1.html"
+	path[1] = "index2.html"
+
 	testCases := []struct {
 		rowURL string
 	}{
@@ -16,11 +21,11 @@ func TestExtrac(t *testing.T) {
 			rowURL: "https://www.reddit.com/r/DotA2/comments/uq012r/til_how_useful_hurricane_bird_is/",
 		},
 	}
-	for _, testCase := range testCases {
-		url, err := New().RowURLExtractor(testCase.rowURL)
+	for i, testCase := range testCases {
+		fmt.Println("test:", i)
+		_, err := New().RowURLExtractor(testCase.rowURL, path[i])
 		if err != nil {
 			t.Error(err)
 		}
-		fmt.Println(url)
 	}
 }
