@@ -2,9 +2,11 @@ package extractor
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/zzLinus/GoTUITODOList/fakeheaders"
 )
@@ -17,7 +19,16 @@ func New() *Extractor {
 }
 
 func (*Extractor) RowURLExtractor(rowURL string) (string, error) {
-	client := &http.Client{}
+	transport := &http.Transport{
+		Proxy:               http.ProxyFromEnvironment,
+		DisableCompression:  true,
+		TLSHandshakeTimeout: 10 * time.Second,
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   15 * time.Minute,
+	}
 
 	req, err := http.NewRequest(http.MethodGet, rowURL, nil)
 	if err != nil {
@@ -31,7 +42,8 @@ func (*Extractor) RowURLExtractor(rowURL string) (string, error) {
 
 	req.Header.Set("Referer", "https://www.reddit.com/")
 	req.Header.Set("Origin", "https://www.reddit.com")
-	// fmt.Println(req.Header)
+
+	fmt.Println(req.Header)
 
 	resp, err := client.Do(req)
 	if err != nil {
