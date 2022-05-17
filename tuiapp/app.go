@@ -11,7 +11,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zzLinus/GoTUITODOList/downloader"
-	"github.com/zzLinus/GoTUITODOList/extractor"
 )
 
 type errMsg error
@@ -25,7 +24,6 @@ const (
 
 var (
 	videoDownloader *downloader.Downloader
-	rowURLExtractor *extractor.Extractor
 )
 
 var (
@@ -81,7 +79,6 @@ func initialModel() model {
 
 func (m model) Init() tea.Cmd {
 	videoDownloader = downloader.New()
-	rowURLExtractor = extractor.New()
 	return tea.Batch(textinput.Blink)
 
 }

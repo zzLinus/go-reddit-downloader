@@ -3,11 +3,9 @@ package extractor
 import (
 	"crypto/tls"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 
@@ -71,30 +69,25 @@ func GetHTMLPage(rowURL string) (string, error) {
 	return string(body), nil
 }
 
-func (*Extractor) RowURLExtractor(rowURL string, path string) (string, error) {
+func (*Extractor) RowURLExtractor(rowURL string) ([]string, error) {
 	html, err := GetHTMLPage(rowURL)
+
 	if err != nil {
 		log.Fatal("Failed to get html page")
 	}
+
 	urls := MatchOneOf(html, `https://v.redd.it/.*/HLSPlaylist`)
 
 	if urls == nil {
 		fmt.Println("can't match anything")
 	}
 
-	for _, url := range urls {
+	for i, url := range urls {
+		urls[i] = url[18:31]
 		fmt.Println(url)
 	}
 
-	respHTML, err := os.Create(path)
-	if err != nil {
-		fmt.Println("can't create file")
-		return "", err
-	}
-
-	io.WriteString(respHTML, html)
-
-	return "", nil
+	return urls, nil
 }
 
 func MatchOneOf(text string, patterns ...string) []string {

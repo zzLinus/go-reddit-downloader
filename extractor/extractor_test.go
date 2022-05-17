@@ -6,11 +6,6 @@ import (
 )
 
 func TestExtrac(t *testing.T) {
-	var path [2]string
-
-	path[0] = "index1.html"
-	path[1] = "index2.html"
-
 	testCases := []struct {
 		rowURL string
 	}{
@@ -23,7 +18,7 @@ func TestExtrac(t *testing.T) {
 	}
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)
-		_, err := New().RowURLExtractor(testCase.rowURL, path[i])
+		_, err := New().RowURLExtractor(testCase.rowURL)
 		if err != nil {
 			t.Error(err)
 		}
