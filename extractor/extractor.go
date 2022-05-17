@@ -16,12 +16,13 @@ func New() *Extractor {
 	return &Extractor{}
 }
 
-func (*Extractor) RowURLExtractor(rowURL string) string {
+func (*Extractor) RowURLExtractor(rowURL string) (string, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet, rowURL, nil)
 	if err != nil {
 		log.Fatal("failed at create request")
+		return "", err
 	}
 
 	for k, v := range fakeheaders.FakeHeaders {
@@ -35,6 +36,7 @@ func (*Extractor) RowURLExtractor(rowURL string) string {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("failed to recive a response")
+		return "", err
 	}
 	defer resp.Body.Close()
 
@@ -44,7 +46,8 @@ func (*Extractor) RowURLExtractor(rowURL string) string {
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
+		return "", err
 	}
 
-	return ""
+	return "", nil
 }

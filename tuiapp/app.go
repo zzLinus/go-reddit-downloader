@@ -70,21 +70,19 @@ func initialModel() model {
 	ti.Width = 20
 	ti.CursorStyle = focusedStyle
 
-	cm := textinput.CursorBlink
-
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Italic(true)
 
 	pro := progress.New(progress.WithDefaultGradient())
 
-	return model{spinner: s, textInput: ti, loading: false, progress: pro, cursorMode: cm}
+	return model{spinner: s, textInput: ti, loading: false, progress: pro}
 }
 
 func (m model) Init() tea.Cmd {
 	videoDownloader = downloader.New()
 	rowURLExtractor = extractor.New()
-	return tea.Batch(textinput.Blink, spinner.Tick)
+	return tea.Batch(textinput.Blink)
 
 }
 
@@ -108,12 +106,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					return respMsg(statusCode)
 				})
+		case "ctrl+r":
+			m.cursorMode++
+			if m.cursorMode > textinput.CursorHide {
+				m.cursorMode = textinput.CursorBlink
+			}
+			cmd := m.textInput.SetCursorMode(m.cursorMode)
+			return m, cmd
+
 		default:
 			var cmd tea.Cmd
 			if !m.loading {
 				m.textInput, cmd = m.textInput.Update(msg)
 			}
-			return m, cmd
+			return m, tea.Batch(cmd, textinput.Blink)
 		}
 
 	case tea.WindowSizeMsg:
