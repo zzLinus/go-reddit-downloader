@@ -14,8 +14,6 @@ type Downloader struct {
 
 var (
 	rowURLExtractor *extractor.Extractor
-	prefixedurlBeg  = "https://v.redd.it/"
-	prefixedurlEnd  = "/DASH_720.mp4"
 )
 
 func New() *Downloader {
@@ -25,15 +23,13 @@ func New() *Downloader {
 func (*Downloader) Download(url string) (int, error) {
 	rowURLExtractor = extractor.New()
 
-	downloadableURL, err := rowURLExtractor.RowURLExtractor(url)
+	downloadableURL, err := rowURLExtractor.ExtractRowURL(url)
 	if err != nil {
 		log.Fatal("can't extract row URL")
 		return 0, nil
 	}
 
-	downloadableURL[0] = prefixedurlBeg + downloadableURL[0] + prefixedurlEnd
-
-	videoFile, err := os.Create("baofengxuehao.mp4")
+	videoFile, err := os.Create("viedo.mp4")
 	if err != nil {
 		log.Fatal("failed to create files")
 		return 0, err

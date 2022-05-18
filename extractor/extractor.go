@@ -12,14 +12,20 @@ import (
 	"github.com/zzLinus/GoTUITODOList/fakeheaders"
 )
 
+const (
+	redditAPI = "https://v.redd.it/"
+	res720    = "/DASH_720.mp4"
+)
+
 type Extractor struct {
+	contentType int8
 }
 
 func New() *Extractor {
 	return &Extractor{}
 }
 
-func GetHTMLPage(rowURL string) (string, error) {
+func getHTMLPage(rowURL string) (string, error) {
 	var (
 		reTrytimes = 10
 		resp       = &http.Response{}
@@ -69,36 +75,33 @@ func GetHTMLPage(rowURL string) (string, error) {
 	return string(body), nil
 }
 
-func (*Extractor) RowURLExtractor(rowURL string) ([]string, error) {
-	html, err := GetHTMLPage(rowURL)
-
+func (*Extractor) ExtractRowURL(rowURL string) ([]string, error) {
+	html, err := getHTMLPage(rowURL)
 	if err != nil {
 		log.Fatal("Failed to get html page")
 	}
 
-	urls := MatchOneOf(html, `https://v.redd.it/.*/HLSPlaylist`)
+	urls := matchOneOf(html, `https://v.redd.it/.*/HLSPlaylist`)
 
 	if urls == nil {
 		fmt.Println("can't match anything")
 	}
 
 	for i, url := range urls {
-		urls[i] = url[18:31]
-		fmt.Println(url)
+		urls[i] = fmt.Sprintf("%s%s%s", redditAPI, url[18:31], res720)
+		fmt.Println(urls[i])
 	}
 
 	return urls, nil
 }
 
-func MatchOneOf(text string, patterns ...string) []string {
+func matchOneOf(text string, patterns ...string) []string {
 	var (
 		re    *regexp.Regexp
 		value []string
 	)
+
 	for _, pattern := range patterns {
-		// (?flags): set flags within current group; non-capturing
-		// s: let . match \n (default false)
-		// https://github.com/google/re2/wiki/Syntax
 		re = regexp.MustCompile(pattern)
 		value = re.FindStringSubmatch(text)
 		if len(value) > 0 {

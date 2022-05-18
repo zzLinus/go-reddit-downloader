@@ -43,7 +43,6 @@ var (
 
 type model struct {
 	spinner    spinner.Model
-	border     lipgloss.Border
 	loading    bool
 	progress   progress.Model
 	textInput  textinput.Model
