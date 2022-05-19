@@ -60,9 +60,10 @@ func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
 			break
 		}
 	}
+
 	for i := len(videoName) - 1; i >= 0; i-- {
 		if videoName[i] == '>' {
-			url = videoName[i+1:]
+			videoName = videoName[i+1:]
 			break
 		}
 	}
@@ -71,8 +72,8 @@ func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
 
 	return &extractor.Data{
 		DownloadableURL: url,
-		FileType:        videoName,
-		VideoName:       fileType,
+		FileType:        fileType,
+		VideoName:       videoName,
 	}, nil
 }
 
@@ -113,11 +114,13 @@ func getHTMLPage(rowURL string) (string, error) {
 	for ; reTrytimes > 0; reTrytimes-- {
 		resp, err = client.Do(req)
 		if err != nil && reTrytimes > 0 && resp.StatusCode < 400 {
-			log.Fatal("failed to recive a response")
+			fmt.Println("failed to recive a response")
 			time.Sleep(1 * time.Second)
-			return "", err
 		} else {
 			break
+		}
+		if reTrytimes == 0 {
+			return "", err
 		}
 	}
 
