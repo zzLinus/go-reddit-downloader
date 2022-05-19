@@ -1,4 +1,4 @@
-package extractor
+package reddit
 
 import (
 	"fmt"
@@ -18,10 +18,10 @@ func TestExtrac(t *testing.T) {
 	}
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)
-		data, err := ExtractData(testCase.rowURL)
+		data, err := New().ExtractRowURL(testCase.rowURL)
 		if err != nil {
 			t.Error(err)
 		}
-		fmt.Println(data.DownloadableURL)
+		fmt.Println(data)
 	}
 }

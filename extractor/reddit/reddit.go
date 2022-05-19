@@ -20,13 +20,11 @@ const (
 	res720    = "/DASH_720.mp4"
 )
 
-func init() {
-	fmt.Println("init function get called")
-	extractor.Register("reddit", New())
-}
-
 type redditExtractor struct{}
 
+func init() {
+	extractor.Register("reddit", New())
+}
 func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
 	var fileType = ""
 	html, err := getHTMLPage(rowURL)
@@ -42,30 +40,34 @@ func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
 	if url == "" {
 		panic("can't match anything")
 	}
-	//
-	// for i := len(url) - 1; i >= 0; i-- {
-	// 	if url[i] == '/' {
-	// 		url = url[:i]
-	// 	}
-	// }
-	// for i := len(url) - 1; i >= 0; i-- {
-	// 	if url[i] == '/' {
-	// 		url = url[i+1:]
-	// 	}
-	// }
-	// for i := len(videoName) - 1; i >= 0; i-- {
-	// 	if videoName[i] == '<' {
-	// 		videoName = videoName[:i]
-	// 	}
-	// }
-	// for i := len(videoName) - 1; i >= 0; i-- {
-	// 	if videoName[i] == '>' {
-	// 		url = videoName[i+1:]
-	// 	}
-	// }
 
-	url = fmt.Sprintf("%s%s%s", redditAPI, url[18:31], res720)
-	fmt.Println(url)
+	for i := len(url) - 1; i >= 0; i-- {
+		if url[i] == '/' {
+			url = url[:i]
+			break
+		}
+	}
+	for i := len(url) - 1; i >= 0; i-- {
+		if url[i] == '/' {
+			url = url[i+1:]
+			break
+		}
+	}
+
+	for i := len(videoName) - 1; i >= 0; i-- {
+		if videoName[i] == '<' {
+			videoName = videoName[:i]
+			break
+		}
+	}
+	for i := len(videoName) - 1; i >= 0; i-- {
+		if videoName[i] == '>' {
+			url = videoName[i+1:]
+			break
+		}
+	}
+
+	url = fmt.Sprintf("%s%s%s", redditAPI, url, res720)
 
 	return &extractor.Data{
 		DownloadableURL: url,
@@ -107,10 +109,12 @@ func getHTMLPage(rowURL string) (string, error) {
 	req.Header.Set("Referer", "https://www.reddit.com/")
 	req.Header.Set("Origin", "https://www.reddit.com")
 
+	//retry after 1 second if request failed and reTrytimes > 0
 	for ; reTrytimes > 0; reTrytimes-- {
 		resp, err = client.Do(req)
-		if err != nil && reTrytimes > 0 {
+		if err != nil && reTrytimes > 0 && resp.StatusCode < 400 {
 			log.Fatal("failed to recive a response")
+			time.Sleep(1 * time.Second)
 			return "", err
 		} else {
 			break
