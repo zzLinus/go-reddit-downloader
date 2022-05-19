@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zzLinus/GoTUITODOList/downloader"
+	_ "github.com/zzLinus/GoTUITODOList/extractor/reddit"
 )
 
 type errMsg error

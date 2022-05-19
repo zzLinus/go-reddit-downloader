@@ -21,12 +21,9 @@ func New() *Downloader {
 }
 
 func (*Downloader) Download(url string) (int, error) {
-	rowURLExtractor = extractor.New()
-
-	downloadableURL, err := rowURLExtractor.ExtractRowURL(url)
+	data, err := extractor.ExtractData(url)
 	if err != nil {
-		log.Fatal("can't extract row URL")
-		return 0, nil
+		panic("can't extract data from this given url")
 	}
 
 	videoFile, err := os.Create("viedo.mp4")
@@ -35,7 +32,7 @@ func (*Downloader) Download(url string) (int, error) {
 		return 0, err
 	}
 
-	resp, err := http.Get(downloadableURL[0])
+	resp, err := http.Get(data.DownloadableURL)
 	if err != nil {
 		log.Fatal(err)
 		return 0, err

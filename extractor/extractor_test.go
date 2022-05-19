@@ -18,9 +18,10 @@ func TestExtrac(t *testing.T) {
 	}
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)
-		_, err := New().ExtractRowURL(testCase.rowURL)
+		data, err := ExtractData(testCase.rowURL)
 		if err != nil {
 			t.Error(err)
 		}
+		fmt.Println(data.DownloadableURL)
 	}
 }
