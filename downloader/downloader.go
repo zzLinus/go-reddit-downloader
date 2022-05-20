@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/zzLinus/GoTUITODOList/extractor"
 	"github.com/zzLinus/GoTUITODOList/utils"
@@ -24,6 +25,9 @@ func New() *Downloader {
 
 func (*Downloader) Download(url string) (int, error) {
 	data, err := extractor.ExtractData(url)
+	var (
+		resp = &http.Response{}
+	)
 	var audioFile *os.File
 	filep := []string{}
 	if err != nil {
@@ -37,10 +41,16 @@ func (*Downloader) Download(url string) (int, error) {
 			return 0, err
 		}
 
-		resp, err := http.Get(data.AudioURL)
-		if err != nil {
-			log.Fatal(err)
-			return 0, err
+		for reTrytimes := 10; reTrytimes > 0; reTrytimes-- {
+			resp, err = http.Get(data.AudioURL)
+			if (err != nil || resp.StatusCode > 400) && reTrytimes > 0 {
+				time.Sleep(1 * time.Second)
+			} else {
+				break
+			}
+			if reTrytimes == 0 {
+				return 0, err
+			}
 		}
 		defer resp.Body.Close()
 		filep = append(filep, audioFile.Name())
@@ -55,11 +65,18 @@ func (*Downloader) Download(url string) (int, error) {
 		return 0, err
 	}
 
-	resp, err := http.Get(data.DownloadableURL)
-	if err != nil {
-		log.Fatal(err)
-		return 0, err
+	for reTrytimes := 10; reTrytimes > 0; reTrytimes-- {
+		resp, err = http.Get(data.DownloadableURL)
+		if (err != nil || resp.StatusCode > 400) && reTrytimes > 0 {
+			time.Sleep(1 * time.Second)
+		} else {
+			break
+		}
+		if reTrytimes == 0 {
+			return 0, err
+		}
 	}
+
 	defer resp.Body.Close()
 
 	io.Copy(videoFile, resp.Body)

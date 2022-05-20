@@ -30,14 +30,14 @@ var (
 var (
 	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	cursorStyle         = focusedStyle.Copy()
+	cursorStyle         = focusedStyle.Copy().PaddingTop(4).PaddingLeft(4)
 	noStyle             = lipgloss.NewStyle()
 	helpStyle           = blurredStyle.Copy()
 	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 	focusedButton       = focusedStyle.Copy().Render("[ Submit ]")
 	style               = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("63"))
 	blurredButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
-	spinnerStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).PaddingLeft(4)
+	spinnerStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).PaddingLeft(4).PaddingTop(4)
 	anotherStyle        = lipgloss.NewStyle().PaddingLeft(4).BorderStyle(lipgloss.RoundedBorder()).
 				BorderForeground(lipgloss.Color("204"))
 )
@@ -169,8 +169,7 @@ func (m model) View() string {
 	}
 
 	if !m.loading {
-		str += fmt.Sprintf("input or paset url here\n%s", m.textInput.View())
-		str += helpStyle.Render("\npase the url here and hit enter to trigger download")
+		str += cursorStyle.Render(fmt.Sprintf("%s", m.textInput.View()))
 	}
 
 	if m.quitting {

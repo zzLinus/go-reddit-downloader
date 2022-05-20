@@ -171,10 +171,8 @@ func getHTMLPage(rowURL string) (string, error) {
 	for ; reTrytimes > 0; reTrytimes-- {
 		resp, err = client.Do(req)
 		if (err != nil || resp.StatusCode > 400) && reTrytimes > 0 {
-			fmt.Println("failed to recive a response")
 			time.Sleep(1 * time.Second)
 		} else {
-			fmt.Println("get a response")
 			break
 		}
 		if reTrytimes == 0 {
