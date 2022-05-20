@@ -28,11 +28,8 @@
 // or something to join them
 // TODO: different resolution option
 // TODO: be able to let use chose what resolution they what to download
-<<<<<<< Updated upstream
-=======
 // TODO: fix the shitty UI
 // 今天他妈的情人节我还在这跟这坨屎耗着我操你妈气死我了啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊
->>>>>>> Stashed changes
 
 package main
 
