@@ -18,6 +18,7 @@ type Data struct {
 	FileType        string
 	VideoName       string
 	DownloadableURL string
+	AudioURL        string
 }
 
 func ExtractData(url string) (*Data, error) {

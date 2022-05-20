@@ -24,8 +24,8 @@
 //      =oo====oooooooooooooooo==-oo=-
 //     .-==-    .--=======---     .==-
 
-// TODO: 真是你妈一拖屎现在。。。audio url
-// TODO: support gif download
+// TODO: 真是你妈一拖屎现在。。。need to extract & download audio url if it's a mp4 content and use ffmpeg
+// or something to join them
 // TODO: different resolution option
 // TODO: be able to let use chose what resolution they what to download
 

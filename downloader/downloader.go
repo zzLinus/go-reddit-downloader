@@ -25,6 +25,23 @@ func (*Downloader) Download(url string) (int, error) {
 	if err != nil {
 		panic("can't extract data from this given url")
 	}
+	if data.AudioURL != "" {
+
+		audioFile, err := os.OpenFile(data.VideoName+"Audio"+"."+data.FileType, os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			log.Fatal("failed to create files")
+			return 0, err
+		}
+
+		resp, err := http.Get(data.AudioURL)
+		if err != nil {
+			log.Fatal(err)
+			return 0, err
+		}
+		defer resp.Body.Close()
+
+		io.Copy(audioFile, resp.Body)
+	}
 
 	//if there is no such file create one and give it right
 	videoFile, err := os.OpenFile(data.VideoName+"."+data.FileType, os.O_RDWR|os.O_CREATE, 0644)

@@ -17,7 +17,11 @@ import (
 
 const (
 	redditMP4API = "https://v.redd.it/"
+	audioURLPart = "/DASH_audio.mp4"
 	res720       = "/DASH_720.mp4"
+	res480       = "/DASH_480.mp4"
+	res360       = "/DASH_360.mp4"
+	res280       = "/DASH_280.mp4"
 )
 
 type redditExtractor struct{}
@@ -74,9 +78,14 @@ func getData(html string) *extractor.Data {
 			}
 		}
 
-		url = fmt.Sprintf("%s%s%s", redditMP4API, url, res720)
+		videoURL := fmt.Sprintf("%s%s%s", redditMP4API, url, res720)
+		audioURL := fmt.Sprintf("%s%s%s", redditMP4API, url, audioURLPart)
 
-		return &extractor.Data{FileType: fileType, VideoName: videoName, DownloadableURL: url}
+		return &extractor.Data{FileType: fileType,
+			VideoName:       videoName,
+			DownloadableURL: videoURL,
+			AudioURL:        audioURL,
+		}
 	} else if fileType == "gif" {
 		url, urlU, urlL := "", "", ""
 		urls := utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)

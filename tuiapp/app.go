@@ -65,7 +65,7 @@ func initialModel() model {
 	ti.Placeholder = "pase an url that support by use"
 	ti.Focus()
 	ti.CharLimit = 80
-	ti.Width = 20
+	ti.Width = 80
 	ti.CursorStyle = focusedStyle
 
 	s := spinner.New()
@@ -170,6 +170,7 @@ func (m model) View() string {
 
 	if !m.loading {
 		str += fmt.Sprintf("input or paset url here\n%s", m.textInput.View())
+		str += helpStyle.Render("\npase the url here and hit enter to trigger download")
 	}
 
 	if m.quitting {
