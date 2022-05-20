@@ -24,11 +24,10 @@
 //      =oo====oooooooooooooooo==-oo=-
 //     .-==-    .--=======---     .==-
 
-// TODO: 真是你妈一拖屎现在。。。extractor返回的类结构体没写，现在就返回一个url，视频大小，音频url也没有,
-// 还需要用正则提取一下h1 tag用来做文件路径的一部分
-// 下载视频的路经放到一个特定的文件夹里，
+// TODO: 真是你妈一拖屎现在。。。audio url
 // TODO: support gif download
 // TODO: different resolution option
+// TODO: be able to let use chose what resolution they what to download
 
 package main
 

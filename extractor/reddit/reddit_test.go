@@ -15,6 +15,9 @@ func TestExtrac(t *testing.T) {
 		{
 			rowURL: "https://www.reddit.com/r/DotA2/comments/uq012r/til_how_useful_hurricane_bird_is/?utm_medium=android_app&utm_source=share",
 		},
+		{
+			rowURL: "https://www.reddit.com/r/ProgrammerHumor/comments/uqovco/my_code_works/",
+		},
 	}
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)

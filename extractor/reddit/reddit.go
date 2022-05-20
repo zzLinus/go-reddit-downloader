@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	redditAPI = "https://v.redd.it/"
-	res720    = "/DASH_720.mp4"
+	redditMP4API = "https://v.redd.it/"
+	res720       = "/DASH_720.mp4"
 )
 
 type redditExtractor struct{}
@@ -25,60 +25,118 @@ type redditExtractor struct{}
 func init() {
 	extractor.Register("reddit", New())
 }
-func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
-	var fileType = ""
-	html, err := getHTMLPage(rowURL)
-	if err != nil {
-		log.Fatal("Failed to get html page")
-	}
-
-	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
-	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`)[0] != "" {
-		fileType = "mp4"
-	}
-	url := utils.MatchOneOf(html, `https://v.redd.it/.*/HLSPlaylist`)[0]
-	if url == "" {
-		panic("can't match anything")
-	}
-
-	for i := len(url) - 1; i >= 0; i-- {
-		if url[i] == '/' {
-			url = url[:i]
-			break
-		}
-	}
-	for i := len(url) - 1; i >= 0; i-- {
-		if url[i] == '/' {
-			url = url[i+1:]
-			break
-		}
-	}
-
-	for i := len(videoName) - 1; i >= 0; i-- {
-		if videoName[i] == '<' {
-			videoName = videoName[:i]
-			break
-		}
-	}
-
-	for i := len(videoName) - 1; i >= 0; i-- {
-		if videoName[i] == '>' {
-			videoName = videoName[i+1:]
-			break
-		}
-	}
-
-	url = fmt.Sprintf("%s%s%s", redditAPI, url, res720)
-
-	return &extractor.Data{
-		DownloadableURL: url,
-		FileType:        fileType,
-		VideoName:       videoName,
-	}, nil
-}
 
 func New() extractor.Extractor {
 	return &redditExtractor{}
+}
+
+func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
+	html, err := getHTMLPage(rowURL)
+	if err != nil {
+		fmt.Println("Failed to get html page")
+		return nil, err
+	}
+
+	return getData(html), nil
+}
+
+func getData(html string) *extractor.Data {
+	var fileType = ""
+	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
+	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
+		fmt.Println("file type mp4")
+		fileType = "mp4"
+	} else if utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*gif`) != nil {
+		fmt.Println("file type gif")
+		fileType = "gif"
+	}
+
+	if fileType == "mp4" {
+		url := utils.MatchOneOf(html, `https://v.redd.it/.*/HLSPlaylist`)[0]
+		if url == "" {
+			panic("can't match anything")
+		}
+
+		for i := len(url) - 1; i >= 0; i-- {
+			if url[i] == '/' {
+				url = url[:i]
+				break
+			}
+		}
+		for i := len(url) - 1; i >= 0; i-- {
+			if url[i] == '/' {
+				url = url[i+1:]
+				break
+			}
+		}
+
+		for i := len(videoName) - 1; i >= 0; i-- {
+			if videoName[i] == '<' {
+				videoName = videoName[:i]
+				break
+			}
+		}
+
+		for i := len(videoName) - 1; i >= 0; i-- {
+			if videoName[i] == '>' {
+				videoName = videoName[i+1:]
+				break
+			}
+		}
+
+		url = fmt.Sprintf("%s%s%s", redditMP4API, url, res720)
+
+		return &extractor.Data{FileType: fileType, VideoName: videoName, DownloadableURL: url}
+	} else if fileType == "gif" {
+		url, urlU, urlL := "", "", ""
+		urls := utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)
+		if urls != nil {
+			url = urls[0]
+		}
+		if url == "" {
+			panic("can't match anything")
+		}
+
+		for i := len(url) - 1; i >= 0; i-- {
+			if url[i] == '&' {
+				urlU = url[:i+1]
+				break
+			}
+		}
+
+		for i := len(url) - 1; i >= 0; i-- {
+			if url[i] == ';' {
+				urlL = url[i+1 : len(url)-1]
+				break
+			}
+		}
+
+		url = urlU + urlL
+
+		for i := len(videoName) - 1; i >= 0; i-- {
+			if videoName[i] == '<' {
+				videoName = videoName[:i]
+				break
+			}
+		}
+
+		for i := len(videoName) - 1; i >= 0; i-- {
+			if videoName[i] == '>' {
+				videoName = videoName[i+1:]
+				break
+			}
+		}
+
+		url = fmt.Sprintf("%s", url)
+
+		// warning:i don't know why the .gif can't open after downloaded,but after rename it as .mp4 it dose play
+		return &extractor.Data{FileType: "mp4", VideoName: videoName, DownloadableURL: url}
+	}
+	return &extractor.Data{}
+}
+
+func getGif(html string) *extractor.Data {
+	return nil
 }
 
 func getHTMLPage(rowURL string) (string, error) {
@@ -123,7 +181,6 @@ func getHTMLPage(rowURL string) (string, error) {
 			return "", err
 		}
 	}
-
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)

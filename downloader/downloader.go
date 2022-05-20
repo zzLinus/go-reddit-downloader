@@ -22,7 +22,6 @@ func New() *Downloader {
 
 func (*Downloader) Download(url string) (int, error) {
 	data, err := extractor.ExtractData(url)
-
 	if err != nil {
 		panic("can't extract data from this given url")
 	}
