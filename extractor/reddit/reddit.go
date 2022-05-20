@@ -30,16 +30,6 @@ func New() extractor.Extractor {
 	return &redditExtractor{}
 }
 
-func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
-	html, err := getHTMLPage(rowURL)
-	if err != nil {
-		fmt.Println("Failed to get html page")
-		return nil, err
-	}
-
-	return getData(html), nil
-}
-
 func getData(html string) *extractor.Data {
 	var fileType = ""
 	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
@@ -171,10 +161,11 @@ func getHTMLPage(rowURL string) (string, error) {
 	//retry after 1 second if request failed and reTrytimes > 0
 	for ; reTrytimes > 0; reTrytimes-- {
 		resp, err = client.Do(req)
-		if err != nil && reTrytimes > 0 && resp.StatusCode < 400 {
+		if (err != nil || resp.StatusCode > 400) && reTrytimes > 0 {
 			fmt.Println("failed to recive a response")
 			time.Sleep(1 * time.Second)
 		} else {
+			fmt.Println("get a response")
 			break
 		}
 		if reTrytimes == 0 {
@@ -185,9 +176,19 @@ func getHTMLPage(rowURL string) (string, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("failed to read response body part")
 		return "", err
 	}
 
 	return string(body), nil
+}
+
+func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
+	html, err := getHTMLPage(rowURL)
+	if err != nil {
+		fmt.Println("Failed to get html page")
+		return &extractor.Data{}, err
+	}
+
+	return getData(html), nil
 }

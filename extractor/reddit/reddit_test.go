@@ -18,6 +18,9 @@ func TestExtrac(t *testing.T) {
 		{
 			rowURL: "https://www.reddit.com/r/ProgrammerHumor/comments/uqovco/my_code_works/",
 		},
+		{
+			rowURL: "https://www.reddit.com/r/AnimatedPixelArt/comments/uomu32/animation_for_astral_ascent/",
+		},
 	}
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)
