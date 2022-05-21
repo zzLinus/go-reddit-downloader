@@ -38,10 +38,8 @@ func getData(html string) *extractor.Data {
 	var fileType = ""
 	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
 	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
-		fmt.Println("file type mp4")
 		fileType = "mp4"
 	} else if utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*gif`) != nil {
-		fmt.Println("file type gif")
 		fileType = "gif"
 	}
 
@@ -183,7 +181,7 @@ func getHTMLPage(rowURL string) (string, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("failed to read response body part")
+		log.Fatal("failed to read response body part")
 		return "", err
 	}
 
@@ -193,7 +191,7 @@ func getHTMLPage(rowURL string) (string, error) {
 func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
 	html, err := getHTMLPage(rowURL)
 	if err != nil {
-		fmt.Println("Failed to get html page")
+		log.Fatal("Failed to get html page")
 		return &extractor.Data{}, err
 	}
 

@@ -1,7 +1,6 @@
 package downloader
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -85,7 +84,7 @@ func (*Downloader) Download(url string) (int, error) {
 
 	mergErr := utils.MergeAudioVideo(filep, data.VideoName+".mp4")
 	if mergErr != nil {
-		fmt.Println("can't merg audio with video")
+		log.Fatal("can't merg audio with video")
 	}
 
 	return resp.StatusCode, nil
