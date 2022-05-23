@@ -27,7 +27,8 @@
 // TODO: be able to let user chose what resolution they what to download
 // TODO: log the state when downloading instead of use a spinner all the time
 // TODO: fix the shitty UI
-// TODO: be able to download from mutible at the same time(try the "goroutine" stuff)
+// TODO: be able to download from mutible at the same time(play around with the "goroutine" stuff)
+// TODO: the process bar when quiting is stupid as fuck,has to fix it something...
 
 package main
 

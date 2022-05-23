@@ -34,6 +34,16 @@ func New() extractor.Extractor {
 	return &redditExtractor{}
 }
 
+func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
+	html, err := getHTMLPage(rowURL)
+	if err != nil {
+		log.Fatal("Failed to get html page")
+		return &extractor.Data{}, err
+	}
+
+	return getData(html), nil
+}
+
 func getData(html string) *extractor.Data {
 	var fileType = ""
 	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
@@ -182,14 +192,4 @@ func getHTMLPage(rowURL string) (string, error) {
 	}
 
 	return string(body), nil
-}
-
-func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
-	html, err := getHTMLPage(rowURL)
-	if err != nil {
-		log.Fatal("Failed to get html page")
-		return &extractor.Data{}, err
-	}
-
-	return getData(html), nil
 }

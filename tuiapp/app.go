@@ -1,5 +1,7 @@
 package tuiapp
 
+// this file is basicly working on bubble team tui framework
+
 import (
 	"fmt"
 	"strings"
@@ -83,6 +85,9 @@ func (m model) Init() tea.Cmd {
 
 }
 
+// TODO:this section is just broken.... i started this project just to play around with bubbletea tui framework
+// but end up with this reddit downloader stuff,so many code are useless the only reason thy are still here is
+// because i'm lazy as fuck and after i play around the bubbletea stuff i forget to clean them...
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
@@ -95,7 +100,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loading = true
 			return m, tea.Batch(m.spinner.Tick,
 				func() tea.Msg {
-					// "https://v.redd.it/8akffrc6fqx81/DASH_720.mp4"
 					rowURL := m.textInput.Value()
 					statusCode, err := videoDownloader.Download(rowURL)
 					if err != nil {
