@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zzLinus/GoTUITODOList/extractor"
-	"github.com/zzLinus/GoTUITODOList/fakeheaders"
+	"github.com/zzLinus/GoRedditDownloader/extractor"
+	"github.com/zzLinus/GoRedditDownloader/fakeheaders"
 
 	"fmt"
 	"log"
 
-	"github.com/zzLinus/GoTUITODOList/utils"
+	"github.com/zzLinus/GoRedditDownloader/utils"
 )
 
 const (
@@ -130,10 +130,6 @@ func getData(html string) *extractor.Data {
 		return &extractor.Data{FileType: "mp4", VideoName: videoName, DownloadableURL: url}
 	}
 	return &extractor.Data{}
-}
-
-func getGif(html string) *extractor.Data {
-	return nil
 }
 
 func getHTMLPage(rowURL string) (string, error) {

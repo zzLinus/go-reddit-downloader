@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/zzLinus/GoTUITODOList/downloader"
-	_ "github.com/zzLinus/GoTUITODOList/extractor/reddit"
+	"github.com/zzLinus/GoRedditDownloader/downloader"
+	_ "github.com/zzLinus/GoRedditDownloader/extractor/reddit"
 )
 
 type errMsg error

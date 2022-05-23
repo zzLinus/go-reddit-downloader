@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/zzLinus/GoTUITODOList/extractor"
-	"github.com/zzLinus/GoTUITODOList/utils"
+	"github.com/zzLinus/GoRedditDownloader/extractor"
+	"github.com/zzLinus/GoRedditDownloader/utils"
 )
 
 type Downloader struct {

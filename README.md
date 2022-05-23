@@ -1,3 +1,6 @@
+# WARNNING!!!!
+**maintain && develop by stupid collage kids**
+
 # TUI Reddit Downloader
 * gif download(but it will end up as a mp4 file)
 * mp4 video download(need ffmpeg to merge the video and audio file)

@@ -1,4 +1,4 @@
-module github.com/zzLinus/GoTUITODOList
+module github.com/zzLinus/GoRedditDownloader
 
 go 1.18
 

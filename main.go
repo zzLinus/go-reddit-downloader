@@ -1,4 +1,4 @@
-//				My Very First Go Project !!!
+//        My Very First Go Project !!!
 //            --==============--
 //   .-==-.===oooo=oooooo=ooooo===--===-
 //  .==  =o=oGGGGGGo=oo=oGGGGGGGG=o=  oo-
@@ -24,12 +24,10 @@
 //      =oo====oooooooooooooooo==-oo=-
 //     .-==-    .--=======---     .==-
 
-// TODO: 真是你妈一拖屎现在。。。need to extract & download audio url if it's a mp4 content and use ffmpeg
-// or something to join them
-// TODO: be able to let use chose what resolution they what to download
+// TODO: be able to let user chose what resolution they what to download
 // TODO: log the state when downloading instead of use a spinner all the time
 // TODO: fix the shitty UI
-// TODO: beable to download from mutible at the same time(try the "goroutine" stuff)
+// TODO: be able to download from mutible at the same time(try the "goroutine" stuff)
 
 package main
 
@@ -37,7 +35,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/zzLinus/GoTUITODOList/tuiapp"
+	"github.com/zzLinus/GoRedditDownloader/tuiapp"
 )
 
 func main() {
