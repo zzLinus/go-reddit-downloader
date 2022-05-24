@@ -24,7 +24,7 @@
 //      =oo====oooooooooooooooo==-oo=-
 //     .-==-    .--=======---     .==-
 
-// TODO: be able to let user chose what resolution they what to download
+// TODO: be able to let user choose what resolution they what to download
 // TODO: log the state when downloading instead of use a spinner all the time
 // TODO: fix the shitty UI
 // TODO: be able to download from mutible at the same time(play around with the "goroutine" stuff)
