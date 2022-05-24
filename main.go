@@ -24,11 +24,10 @@
 //      =oo====oooooooooooooooo==-oo=-
 //     .-==-    .--=======---     .==-
 
-// TODO: be able to let user choose what resolution they what to download
-// TODO: log the state when downloading instead of use a spinner all the time
-// TODO: fix the shitty UI
+// TODO: add a list UI component to be able to let user choose what resolution they what to download
+// TODO: current logging is fake,link it with zhe download state
 // TODO: be able to download from mutible at the same time(play around with the "goroutine" stuff)
-// TODO: the process bar when quiting is stupid as fuck,has to fix it something...
+// TODO: the process bar when quiting is stupid as fuck,has to fix it sometimes...
 
 package main
 

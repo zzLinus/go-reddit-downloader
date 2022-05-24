@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/zzLinus/GoRedditDownloader/downloader"
 	_ "github.com/zzLinus/GoRedditDownloader/extractor/reddit"
 )
@@ -40,12 +41,15 @@ var (
 	blurredText  = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	focusedText  = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	noStyle      = lipgloss.NewStyle()
-	helpStyple   = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).PaddingLeft(4)
+	helpStyple   = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).PaddingLeft(4).PaddingTop(2)
+	color        = termenv.EnvColorProfile().Color
+	// Title        = termenv.Style{}.Foreground(color("204")).Background(color("235")).Styled
+	Title = termenv.Style{}.Background(color("#cc3700")).Foreground(color("#e8e6e3")).Styled
 
-	focusedSubmit = focusedStyle.Copy().Render("[ Submit ]")
-	blurredSubmit = blurredStyle.Copy().Render("[ Submit ]")
-	focusedQuit   = focusedStyle.Copy().Render("[ Quit ]")
-	blurredQuit   = blurredStyle.Copy().Render("[ Quit ]")
+	focusedSubmit = focusedStyle.Copy().PaddingLeft(4).Render("[ Submit ]")
+	blurredSubmit = blurredStyle.Copy().PaddingLeft(4).Render("[ Submit ]")
+	focusedQuit   = focusedStyle.Copy().PaddingLeft(4).Render("[ Quit ]")
+	blurredQuit   = blurredStyle.Copy().PaddingLeft(4).Render("[ Quit ]")
 )
 
 type model struct {
@@ -226,7 +230,7 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 
-	b.WriteString("\n\n")
+	b.WriteString(fmt.Sprintf("\n\n    %s\n\n", Title("RedditDownloader")))
 	if m.loading {
 		b.WriteString(spinnerStyle.Render(fmt.Sprintf("%s Downloading content", m.spinner.View())))
 		b.WriteString("\n\n")
@@ -240,8 +244,8 @@ func (m model) View() string {
 	}
 
 	if !m.loading {
-		// str += cursorStyle.Render(fmt.Sprintf("%s", m.textInput.View()))
 		b.WriteString(cursorStyle.Render(fmt.Sprintf("%s", m.textInput.View())))
+		b.WriteString("\n\n")
 		sub := &blurredSubmit
 		qui := &blurredQuit
 		if m.focusIndex == 1 {
@@ -250,7 +254,8 @@ func (m model) View() string {
 			qui = &focusedQuit
 		}
 		h := helpStyple.Render("use tab shift+tab or ↓ ↑ to control,enter to choose")
-		fmt.Fprintf(&b, "\n\n%s\t%s\n\n%s", *sub, *qui, h)
+		b.WriteString(fmt.Sprintf("%s%s", *sub, *qui))
+		b.WriteString(fmt.Sprintf("%s", h))
 	}
 
 	if m.quitting {
