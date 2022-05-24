@@ -35,26 +35,29 @@ var (
 var (
 	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).PaddingLeft(4)
 	cursorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	spinnerStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).PaddingTop(2)
+	spinnerStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).PaddingTop(2).PaddingLeft(4)
 	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(4)
 	blurredText  = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	focusedText  = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	noStyle      = lipgloss.NewStyle()
+	helpStyple   = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).PaddingLeft(4)
 
-	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
-	blurredButton = blurredStyle.Copy().Render("[ Submit ]")
+	focusedSubmit = focusedStyle.Copy().Render("[ Submit ]")
+	blurredSubmit = blurredStyle.Copy().Render("[ Submit ]")
+	focusedQuit   = focusedStyle.Copy().Render("[ Quit ]")
+	blurredQuit   = blurredStyle.Copy().Render("[ Quit ]")
 )
 
 type model struct {
-	spinner     spinner.Model
-	progress    progress.Model
-	textInput   textinput.Model
-	cursorMode  textinput.CursorMode
-	focusButton bool
-	loading     bool
-	quitting    bool
-	err         error
-	results     []result
+	spinner    spinner.Model
+	progress   progress.Model
+	textInput  textinput.Model
+	cursorMode textinput.CursorMode
+	focusIndex int8
+	loading    bool
+	quitting   bool
+	err        error
+	results    []result
 }
 
 type result struct {
@@ -84,12 +87,12 @@ func initialModel() model {
 	pro := progress.New(progress.WithDefaultGradient())
 
 	return model{
-		spinner:     s,
-		textInput:   ti,
-		loading:     false,
-		progress:    pro,
-		focusButton: false,
-		results:     make([]result, 6),
+		spinner:    s,
+		textInput:  ti,
+		loading:    false,
+		progress:   pro,
+		focusIndex: 0,
+		results:    make([]result, 6),
 	}
 }
 
@@ -112,21 +115,41 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Batch(tickCmd())
 		case "tab", "down":
-			m.focusButton = true
-			m.textInput.TextStyle = blurredText
-			m.textInput.CursorStyle = blurredStyle
-			m.textInput.PromptStyle = blurredStyle
-			m.textInput.Blur()
+			if m.focusIndex == 0 {
+				m.focusIndex++
+				m.textInput.CursorStyle = blurredStyle
+				m.textInput.PromptStyle = blurredStyle
+				m.textInput.TextStyle = blurredText
+				m.textInput.Blur()
+			} else if m.focusIndex == 1 {
+				m.focusIndex++
+			} else if m.focusIndex == 2 {
+				m.focusIndex = 0
+				m.textInput.CursorStyle = focusedStyle
+				m.textInput.PromptStyle = focusedStyle
+				m.textInput.TextStyle = focusedText
+				m.textInput.Focus()
+			}
 			return m, nil
 		case "shift+tab", "up":
-			m.focusButton = false
-			m.textInput.TextStyle = focusedText
-			m.textInput.CursorStyle = focusedStyle
-			m.textInput.PromptStyle = focusedStyle
-			m.textInput.Focus()
+			if m.focusIndex == 0 {
+				m.focusIndex = 2
+				m.textInput.CursorStyle = blurredStyle
+				m.textInput.PromptStyle = blurredStyle
+				m.textInput.TextStyle = blurredText
+				m.textInput.Blur()
+			} else if m.focusIndex == 1 {
+				m.focusIndex--
+				m.textInput.CursorStyle = focusedStyle
+				m.textInput.PromptStyle = focusedStyle
+				m.textInput.TextStyle = focusedText
+				m.textInput.Focus()
+			} else if m.focusIndex == 2 {
+				m.focusIndex--
+			}
 			return m, nil
 		case "enter":
-			if m.focusButton {
+			if m.focusIndex == 1 {
 				m.loading = true
 				return m, tea.Batch(
 					m.spinner.Tick,
@@ -139,6 +162,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return respMsg(statusCode)
 					},
 					runPretendProcess)
+			}
+			if m.focusIndex == 2 {
+				return m, tea.Quit
 			}
 			return m, nil
 		default:
@@ -195,18 +221,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var b strings.Builder
+
 	if m.err != nil {
 		return m.err.Error()
 	}
 
+	b.WriteString("\n\n")
 	if m.loading {
 		b.WriteString(spinnerStyle.Render(fmt.Sprintf("%s Downloading content", m.spinner.View())))
 		b.WriteString("\n\n")
 		for _, res := range m.results {
 			if res.duration == 0 {
-				b.WriteString(".............................\n")
+				b.WriteString("    .............................\n")
 			} else {
-				b.WriteString(fmt.Sprintf("%s Fake Job finished in %s\n", res.emoji, res.duration))
+				b.WriteString(fmt.Sprintf("    %s Fake Job finished in %s\n", res.emoji, res.duration))
 			}
 		}
 	}
@@ -214,11 +242,15 @@ func (m model) View() string {
 	if !m.loading {
 		// str += cursorStyle.Render(fmt.Sprintf("%s", m.textInput.View()))
 		b.WriteString(cursorStyle.Render(fmt.Sprintf("%s", m.textInput.View())))
-		button := &blurredButton
-		if m.focusButton == true {
-			button = &focusedButton
+		sub := &blurredSubmit
+		qui := &blurredQuit
+		if m.focusIndex == 1 {
+			sub = &focusedSubmit
+		} else if m.focusIndex == 2 {
+			qui = &focusedQuit
 		}
-		fmt.Fprintf(&b, "\n\n%s\n\n", *button)
+		h := helpStyple.Render("use tab shift+tab or ↓ ↑ to control,enter to choose")
+		fmt.Fprintf(&b, "\n\n%s\t%s\n\n%s", *sub, *qui, h)
 	}
 
 	if m.quitting {
@@ -234,7 +266,7 @@ func tickCmd() tea.Cmd {
 }
 
 func randomEmoji() string {
-	emojis := []rune("🍦🧋🍡🤠👾😭🦊🐯🦆🥨🎏🍔🍒🍥🎮📦🦁🐶🐸🍕🥐🧲🚒🥇🏆🌽")
+	emojis := []rune("🍦🍤🧋🍡🤠👾😭🦊🐯🦆🥨🎏🍔🍒🍥🎮📦🦁🐶🐸🍕🥐🧲🚒🥇🏆🌽")
 	return string(emojis[rand.Intn(len(emojis))])
 }
 
