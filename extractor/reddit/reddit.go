@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zzLinus/GoRedditDownloader/extractor"
-	"github.com/zzLinus/GoRedditDownloader/fakeheaders"
-
 	"fmt"
 	"log"
+
+	"github.com/zzLinus/GoRedditDownloader/extractor"
+	"github.com/zzLinus/GoRedditDownloader/fakeheaders"
 
 	"github.com/zzLinus/GoRedditDownloader/utils"
 )
@@ -34,17 +34,17 @@ func New() extractor.Extractor {
 	return &redditExtractor{}
 }
 
-func (*redditExtractor) ExtractRowURL(rowURL string) (*extractor.Data, error) {
-	html, err := getHTMLPage(rowURL)
+func (*redditExtractor) ExtractRowURL(rowURL string, c chan extractor.SubscriptMsg) (*extractor.Data, error) {
+	html, err := getHTMLPage(rowURL, c)
 	if err != nil {
 		log.Fatal("Failed to get html page")
 		return &extractor.Data{}, err
 	}
 
-	return getData(html), nil
+	return getData(html, c), nil
 }
 
-func getData(html string) *extractor.Data {
+func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 	var fileType = ""
 	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
 	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
@@ -58,6 +58,7 @@ func getData(html string) *extractor.Data {
 		if url == "" {
 			panic("can't match anything")
 		}
+		c <- extractor.SubscriptMsg{Msg: "Parsing mp4 url"}
 
 		for i := len(url) - 1; i >= 0; i-- {
 			if url[i] == '/' {
@@ -85,6 +86,7 @@ func getData(html string) *extractor.Data {
 				break
 			}
 		}
+		c <- extractor.SubscriptMsg{Msg: "Finish parsing mp4 url"}
 
 		videoURL := fmt.Sprintf("%s%s%s", redditMP4API, url, res720)
 		audioURL := fmt.Sprintf("%s%s%s", redditMP4API, url, audioURLPart)
@@ -103,7 +105,7 @@ func getData(html string) *extractor.Data {
 		if url == "" {
 			panic("can't match anything")
 		}
-
+		c <- extractor.SubscriptMsg{Msg: "Parsing gif url"}
 		for i := len(url) - 1; i >= 0; i-- {
 			if url[i] == '&' {
 				urlU = url[:i+1]
@@ -135,6 +137,7 @@ func getData(html string) *extractor.Data {
 		}
 
 		url = fmt.Sprintf("%s", url)
+		c <- extractor.SubscriptMsg{Msg: "Finishd parsing gif url"}
 
 		// warning:i don't know why the .gif can't open after downloaded,but after rename it as .mp4 it dose play
 		return &extractor.Data{FileType: "mp4", VideoName: videoName, DownloadableURL: url}
@@ -142,7 +145,7 @@ func getData(html string) *extractor.Data {
 	return &extractor.Data{}
 }
 
-func getHTMLPage(rowURL string) (string, error) {
+func getHTMLPage(rowURL string, c chan extractor.SubscriptMsg) (string, error) {
 	var (
 		reTrytimes = 10
 		resp       = &http.Response{}
@@ -171,6 +174,7 @@ func getHTMLPage(rowURL string) (string, error) {
 	req.Header.Set("Referer", "https://www.reddit.com/")
 	req.Header.Set("Origin", "https://www.reddit.com")
 
+	c <- extractor.SubscriptMsg{Msg: "Request initialized"}
 	//retry after 1 second if request failed and reTrytimes > 0
 	for ; reTrytimes > 0; reTrytimes-- {
 		resp, err = client.Do(req)
@@ -184,12 +188,11 @@ func getHTMLPage(rowURL string) (string, error) {
 		}
 	}
 	defer resp.Body.Close()
-
+	c <- extractor.SubscriptMsg{Msg: "Recived HTML Page"}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal("failed to read response body part")
 		return "", err
 	}
-
 	return string(body), nil
 }

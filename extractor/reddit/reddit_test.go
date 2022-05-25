@@ -3,6 +3,8 @@ package reddit
 import (
 	"fmt"
 	"testing"
+
+	"github.com/zzLinus/GoRedditDownloader/extractor"
 )
 
 func TestExtrac(t *testing.T) {
@@ -22,9 +24,10 @@ func TestExtrac(t *testing.T) {
 			rowURL: "https://www.reddit.com/r/AnimatedPixelArt/comments/uomu32/animation_for_astral_ascent/",
 		},
 	}
+	c := make(chan extractor.SubscriptMsg, 10)
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)
-		data, err := New().ExtractRowURL(testCase.rowURL)
+		data, err := New().ExtractRowURL(testCase.rowURL, c)
 		if err != nil {
 			t.Error(err)
 		}

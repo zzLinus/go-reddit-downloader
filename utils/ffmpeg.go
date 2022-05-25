@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -10,7 +10,6 @@ func MergeAudioVideo(cpath []string, dpath string) error {
 	flags := []string{
 		"-y",
 	}
-	fmt.Println(cpath)
 
 	for _, p := range cpath {
 		flags = append(flags, "-i", p)
@@ -20,7 +19,7 @@ func MergeAudioVideo(cpath []string, dpath string) error {
 	cmd := exec.Command("ffmpeg", flags...)
 	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("can't execute command:%s", cmd.String())
+		log.Fatalf("can't execute command:%s", cmd.String())
 		return err
 	}
 	for _, p := range cpath {

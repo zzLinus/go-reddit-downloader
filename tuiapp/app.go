@@ -1,6 +1,6 @@
 package tuiapp
 
-// this file is basicly working on bubble team tui framework
+// this file is basicly hacking on bubble tea tui framework
 
 import (
 	"fmt"
@@ -15,14 +15,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/zzLinus/GoRedditDownloader/downloader"
-	_ "github.com/zzLinus/GoRedditDownloader/extractor/reddit"
+	"github.com/zzLinus/GoRedditDownloader/extractor"
 )
 
 type errMsg error
 type tickMsg time.Time
-type respMsg int
-
 type processFinishedMsg time.Duration
+type respMsg int
 
 const (
 	padding  = 2
@@ -62,11 +61,13 @@ type model struct {
 	quitting   bool
 	err        error
 	results    []result
+	sub        chan extractor.SubscriptMsg
 }
 
 type result struct {
 	duration time.Duration
 	emoji    string
+	msg      string
 }
 
 func New() *tea.Program {
@@ -77,10 +78,10 @@ func New() *tea.Program {
 func initialModel() model {
 
 	ti := textinput.New()
-	ti.Placeholder = "pase an url that support by use"
 	ti.Focus()
 	ti.CharLimit = 80
 	ti.TextStyle = focusedText
+	ti.Placeholder = "pase an url that support by use"
 	ti.CursorStyle = focusedStyle
 	ti.PromptStyle = focusedStyle
 
@@ -96,15 +97,21 @@ func initialModel() model {
 		loading:    false,
 		progress:   pro,
 		focusIndex: 0,
-		results:    make([]result, 6),
+		results:    make([]result, 9),
+		sub:        make(chan extractor.SubscriptMsg, 10),
+	}
+}
+
+func activityLisenter(sub chan extractor.SubscriptMsg) tea.Cmd {
+	return func() tea.Msg {
+		return extractor.SubscriptMsg(<-sub)
 	}
 }
 
 func (m model) Init() tea.Cmd {
 	rand.Seed(time.Now().UTC().UnixNano())
 	videoDownloader = downloader.New()
-	return tea.Batch(textinput.Blink, tea.EnterAltScreen)
-
+	return tea.Batch(textinput.Blink, tea.EnterAltScreen, activityLisenter(m.sub))
 }
 
 // TODO:this section is just broken.... i started this project just to play around with bubbletea tui framework
@@ -117,7 +124,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "esc", "ctrl+c":
 			m.quitting = true
-			return m, tea.Batch(tickCmd())
+			return m, tea.Quit
 		case "tab", "down":
 			if m.focusIndex == 0 {
 				m.focusIndex++
@@ -159,13 +166,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.spinner.Tick,
 					func() tea.Msg {
 						rowURL := m.textInput.Value()
-						statusCode, err := videoDownloader.Download(rowURL)
+						statusCode, err := videoDownloader.Download(rowURL, m.sub)
 						if err != nil {
 							panic(err)
 						}
 						return respMsg(statusCode)
-					},
-					runPretendProcess)
+					})
 			}
 			if m.focusIndex == 2 {
 				return m, tea.Quit
@@ -185,6 +191,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.progress.Width = maxWidth
 		}
 		return m, nil
+
+	case extractor.SubscriptMsg:
+		d := time.Duration(10)
+		res := result{emoji: randomEmoji(), duration: d, msg: msg.Msg}
+		m.results = append(m.results[1:], res)
+		return m, activityLisenter(m.sub)
 
 	case errMsg:
 		m.err = msg
@@ -208,12 +220,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.progress = progressModel.(progress.Model)
 		return m, cmd
 
-	case processFinishedMsg:
-		d := time.Duration(msg)
-		res := result{emoji: randomEmoji(), duration: d}
-		m.results = append(m.results[1:], res)
-		return m, runPretendProcess
-
 	default:
 		var cmd tea.Cmd
 		if m.loading && !m.quitting {
@@ -236,9 +242,9 @@ func (m model) View() string {
 		b.WriteString("\n\n")
 		for _, res := range m.results {
 			if res.duration == 0 {
-				b.WriteString("    .............................\n")
+				b.WriteString("    .................................\n")
 			} else {
-				b.WriteString(fmt.Sprintf("    %s Fake Job finished in %s\n", res.emoji, res.duration))
+				b.WriteString(fmt.Sprintf("    %s %-25s %s\n", res.emoji, res.msg, res.duration))
 			}
 		}
 	}
@@ -273,10 +279,4 @@ func tickCmd() tea.Cmd {
 func randomEmoji() string {
 	emojis := []rune("🍦🍤🧋🍡🤠👾😭🦊🐯🦆🥨🎏🍔🍒🍥🎮📦🦁🐶🐸🍕🥐🧲🚒🥇🏆🌽")
 	return string(emojis[rand.Intn(len(emojis))])
-}
-
-func runPretendProcess() tea.Msg {
-	pause := time.Duration(rand.Int63n(899)+100) * time.Millisecond
-	time.Sleep(pause)
-	return processFinishedMsg(pause)
 }

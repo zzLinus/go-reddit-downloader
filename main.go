@@ -35,6 +35,7 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/zzLinus/GoRedditDownloader/extractor/reddit"
 	"github.com/zzLinus/GoRedditDownloader/tuiapp"
 )
 
