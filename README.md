@@ -10,6 +10,11 @@
 ## Dependences 
 [ffmpeg](https://github.com/FFmpeg/FFmpeg)
 
+## Related Project
+[bubbletea](https://github.com/charmbracelet/bubbletea)
+
+[lux](https://github.com/iawia002/lux)
+
 ## Demo
 ![](gif/demo.gif)
 

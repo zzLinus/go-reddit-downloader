@@ -30,6 +30,7 @@ const (
 
 var (
 	videoDownloader *downloader.Downloader
+	duration        time.Duration
 )
 
 var (
@@ -278,6 +279,6 @@ func tickCmd() tea.Cmd {
 }
 
 func randomEmoji() string {
-	emojis := []rune("🍤🧋🍡👾🦊🐯🤖🎏🍔🍥🎮🍕🥐🎃🎄🕹️🥡🦾")
+	emojis := []rune("🍤🧋🍡👾🦊🐯🤖🎏🍔🍥🎮🍕🥐🎄🕹️")
 	return string(emojis[rand.Intn(len(emojis))])
 }
