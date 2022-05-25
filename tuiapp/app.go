@@ -236,7 +236,8 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 
-	b.WriteString(fmt.Sprintf("\n\n    %s\n\n", Title("RedditDownloader")))
+	b.WriteString(fmt.Sprintf("\n\n           %s", Title("RedditDownloader")))
+	b.WriteString("\n\n\n")
 	if m.loading {
 		b.WriteString(spinnerStyle.Render(fmt.Sprintf("%s Downloading content", m.spinner.View())))
 		b.WriteString("\n\n")
@@ -277,6 +278,6 @@ func tickCmd() tea.Cmd {
 }
 
 func randomEmoji() string {
-	emojis := []rune("🍦🍤🧋🍡🤠👾😭🦊🐯🦆🥨🎏🍔🍒🍥🎮📦🦁🐶🐸🍕🥐🧲🚒🥇🏆🌽")
+	emojis := []rune("🍤🧋🍡👾🦊🐯🤖🎏🍔🍥🎮🍕🥐🎃🎄🕹️🥡🦾")
 	return string(emojis[rand.Intn(len(emojis))])
 }

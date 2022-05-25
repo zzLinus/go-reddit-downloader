@@ -90,7 +90,7 @@ func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, err
 		log.Fatal("can't merg audio with video")
 	}
 
-	c <- extractor.SubscriptMsg{Msg: "Finished"}
+	c <- extractor.SubscriptMsg{Msg: "FINISHED!!"}
 	time.Sleep(3 * time.Second)
 	return resp.StatusCode, nil
 }

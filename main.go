@@ -25,9 +25,9 @@
 //     .-==-    .--=======---     .==-
 
 // TODO: add a list UI component to be able to let user choose what resolution they what to download
-// TODO: current logging is fake,link it with zhe download state
+// TODO: add a timer system to trace how many time each step take and use it in the logging menu,
+// current logging time is fake
 // TODO: be able to download from mutible at the same time(play around with the "goroutine" stuff)
-// TODO: the process bar when quiting is stupid as fuck,has to fix it sometimes...
 
 package main
 
