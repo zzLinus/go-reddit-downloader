@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"log"
+	"time"
 )
 
 var extractorMap = make(map[string]Extractor)
@@ -11,7 +12,8 @@ type Extractor interface {
 }
 
 type SubscriptMsg struct {
-	Msg string
+	Msg      string
+	Duration time.Duration
 }
 
 func Register(domain string, e Extractor) {
@@ -28,7 +30,7 @@ type Data struct {
 func ExtractData(url string, c chan SubscriptMsg) (*Data, error) {
 	extractor := extractorMap["reddit"]
 	if extractor == nil {
-		panic("can't get extractor")
+		log.Fatal("can't get extractor")
 	}
 	data, err := extractor.ExtractRowURL(url, c)
 	if err != nil {

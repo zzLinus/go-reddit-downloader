@@ -66,7 +66,7 @@ type model struct {
 }
 
 type result struct {
-	duration time.Duration
+	duration float64
 	emoji    string
 	msg      string
 }
@@ -98,7 +98,7 @@ func initialModel() model {
 		loading:    false,
 		progress:   pro,
 		focusIndex: 0,
-		results:    make([]result, 9),
+		results:    make([]result, 7),
 		sub:        make(chan extractor.SubscriptMsg, 10),
 	}
 }
@@ -194,8 +194,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case extractor.SubscriptMsg:
-		d := time.Duration(10)
-		res := result{emoji: randomEmoji(), duration: d, msg: msg.Msg}
+		res := result{emoji: randomEmoji(), duration: msg.Duration.Seconds(), msg: msg.Msg}
 		m.results = append(m.results[1:], res)
 		return m, activityLisenter(m.sub)
 
@@ -244,9 +243,9 @@ func (m model) View() string {
 		b.WriteString("\n\n")
 		for _, res := range m.results {
 			if res.duration == 0 {
-				b.WriteString("    .................................\n")
+				b.WriteString("    .......................................\n")
 			} else {
-				b.WriteString(fmt.Sprintf("    %s %-25s %s\n", res.emoji, res.msg, res.duration))
+				b.WriteString(fmt.Sprintf("    %s %-25s %8.5f s\n", res.emoji, res.msg, res.duration))
 			}
 		}
 	}
@@ -279,6 +278,6 @@ func tickCmd() tea.Cmd {
 }
 
 func randomEmoji() string {
-	emojis := []rune("🍤🧋🍡👾🦊🐯🤖🎏🍔🍥🎮🍕🥐🎄🕹️")
+	emojis := []rune("🍤🍡👾🦊🐯🤖🎏🍔🍥🎮🍕🥐🕹️")
 	return string(emojis[rand.Intn(len(emojis))])
 }

@@ -23,8 +23,9 @@ func New() *Downloader {
 }
 
 func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, error) {
+	now := time.Now()
 	data, err := extractor.ExtractData(url, c)
-	c <- extractor.SubscriptMsg{Msg: "Finished data extraction"}
+
 	var (
 		resp = &http.Response{}
 	)
@@ -34,7 +35,8 @@ func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, err
 		panic("can't extract data from this given url")
 	}
 	if data.AudioURL != "" {
-		c <- extractor.SubscriptMsg{Msg: "Downloading audio data"}
+		c <- extractor.SubscriptMsg{Msg: "Downloading audio data", Duration: time.Now().Sub(now)}
+		now = time.Now()
 		audioFile, err = os.OpenFile("autio.mp4", os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			log.Fatal("failed to create files")
@@ -65,7 +67,8 @@ func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, err
 		return 0, err
 	}
 
-	c <- extractor.SubscriptMsg{Msg: "Downloading video data"}
+	c <- extractor.SubscriptMsg{Msg: "Downloading video data", Duration: time.Now().Sub(now)}
+	now = time.Now()
 	for reTrytimes := 10; reTrytimes > 0; reTrytimes-- {
 		resp, err = http.Get(data.DownloadableURL)
 		if (err != nil || resp.StatusCode > 400) && reTrytimes > 0 {
@@ -85,12 +88,12 @@ func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, err
 	filep = append(filep, videoFile.Name())
 
 	mergErr := utils.MergeAudioVideo(filep, data.VideoName+".mp4")
-	c <- extractor.SubscriptMsg{Msg: "Merging video with audio"}
+	c <- extractor.SubscriptMsg{Msg: "Merging video with audio", Duration: time.Now().Sub(now)}
+	now = time.Now()
 	if mergErr != nil {
 		log.Fatal("can't merg audio with video")
 	}
 
-	c <- extractor.SubscriptMsg{Msg: "FINISHED!!"}
 	time.Sleep(3 * time.Second)
 	return resp.StatusCode, nil
 }

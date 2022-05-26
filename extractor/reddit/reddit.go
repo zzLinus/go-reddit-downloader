@@ -45,6 +45,7 @@ func (*redditExtractor) ExtractRowURL(rowURL string, c chan extractor.SubscriptM
 }
 
 func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
+	now := time.Now()
 	var fileType = ""
 	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
 	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
@@ -58,7 +59,8 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 		if url == "" {
 			panic("can't match anything")
 		}
-		c <- extractor.SubscriptMsg{Msg: "Parsing mp4 url"}
+		c <- extractor.SubscriptMsg{Msg: "Parsing mp4 url", Duration: time.Now().Sub(now)}
+		now = time.Now()
 
 		for i := len(url) - 1; i >= 0; i-- {
 			if url[i] == '/' {
@@ -86,7 +88,8 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 				break
 			}
 		}
-		c <- extractor.SubscriptMsg{Msg: "Finish parsing mp4 url"}
+		c <- extractor.SubscriptMsg{Msg: "Finish parsing mp4 url", Duration: time.Now().Sub(now)}
+		now = time.Now()
 
 		videoURL := fmt.Sprintf("%s%s%s", redditMP4API, url, res720)
 		audioURL := fmt.Sprintf("%s%s%s", redditMP4API, url, audioURLPart)
@@ -105,7 +108,9 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 		if url == "" {
 			panic("can't match anything")
 		}
-		c <- extractor.SubscriptMsg{Msg: "Parsing gif url"}
+		c <- extractor.SubscriptMsg{Msg: "Parsing gif url", Duration: time.Now().Sub(now)}
+		now = time.Now()
+
 		for i := len(url) - 1; i >= 0; i-- {
 			if url[i] == '&' {
 				urlU = url[:i+1]
@@ -137,7 +142,8 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 		}
 
 		url = fmt.Sprintf("%s", url)
-		c <- extractor.SubscriptMsg{Msg: "Finishd parsing gif url"}
+		c <- extractor.SubscriptMsg{Msg: "Finishd parsing gif url", Duration: time.Now().Sub(now)}
+		now = time.Now()
 
 		// warning:i don't know why the .gif can't open after downloaded,but after rename it as .mp4 it dose play
 		return &extractor.Data{FileType: "mp4", VideoName: videoName, DownloadableURL: url}
@@ -146,6 +152,7 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 }
 
 func getHTMLPage(rowURL string, c chan extractor.SubscriptMsg) (string, error) {
+	now := time.Now()
 	var (
 		reTrytimes = 10
 		resp       = &http.Response{}
@@ -174,7 +181,8 @@ func getHTMLPage(rowURL string, c chan extractor.SubscriptMsg) (string, error) {
 	req.Header.Set("Referer", "https://www.reddit.com/")
 	req.Header.Set("Origin", "https://www.reddit.com")
 
-	c <- extractor.SubscriptMsg{Msg: "Request initialized"}
+	c <- extractor.SubscriptMsg{Msg: "Request initialized", Duration: time.Now().Sub(now)}
+	now = time.Now()
 	//retry after 1 second if request failed and reTrytimes > 0
 	for ; reTrytimes > 0; reTrytimes-- {
 		resp, err = client.Do(req)
@@ -188,7 +196,7 @@ func getHTMLPage(rowURL string, c chan extractor.SubscriptMsg) (string, error) {
 		}
 	}
 	defer resp.Body.Close()
-	c <- extractor.SubscriptMsg{Msg: "Recived HTML Page"}
+	c <- extractor.SubscriptMsg{Msg: "Recived HTML Page", Duration: time.Now().Sub(now)}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal("failed to read response body part")
