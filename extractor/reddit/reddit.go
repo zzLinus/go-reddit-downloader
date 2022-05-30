@@ -47,7 +47,7 @@ func (*redditExtractor) ExtractRowURL(rowURL string, c chan extractor.SubscriptM
 func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 	now := time.Now()
 	var fileType = ""
-	videoName := utils.MatchOneOf(html, `<title>.*<\/title>`)[0]
+	videoName := utils.MatchOneOf(html, `<title>(.+?)<\/title>`)[1]
 	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
 		fileType = "mp4"
 	} else if utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*gif`) != nil {
@@ -55,25 +55,12 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 	}
 
 	if fileType == "mp4" {
-		url := utils.MatchOneOf(html, `https://v.redd.it/.*/HLSPlaylist`)[0]
+		url := utils.MatchOneOf(html, `https://v.redd.it/(.+?)/HLSPlaylist`)[1]
 		if url == "" {
 			panic("can't match anything")
 		}
 		c <- extractor.SubscriptMsg{Msg: "Parsing mp4 url", Duration: time.Now().Sub(now)}
 		now = time.Now()
-
-		for i := len(url) - 1; i >= 0; i-- {
-			if url[i] == '/' {
-				url = url[:i]
-				break
-			}
-		}
-		for i := len(url) - 1; i >= 0; i-- {
-			if url[i] == '/' {
-				url = url[i+1:]
-				break
-			}
-		}
 
 		for i := len(videoName) - 1; i >= 0; i-- {
 			if videoName[i] == '<' {
@@ -101,45 +88,25 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 		}
 	} else if fileType == "gif" {
 		url, urlU, urlL := "", "", ""
-		urls := utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)
-		if urls != nil {
-			url = urls[0]
-		}
+		url = utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)[0]
 		if url == "" {
 			panic("can't match anything")
 		}
 		c <- extractor.SubscriptMsg{Msg: "Parsing gif url", Duration: time.Now().Sub(now)}
 		now = time.Now()
-
 		for i := len(url) - 1; i >= 0; i-- {
 			if url[i] == '&' {
 				urlU = url[:i+1]
 				break
 			}
 		}
-
 		for i := len(url) - 1; i >= 0; i-- {
 			if url[i] == ';' {
 				urlL = url[i+1 : len(url)-1]
 				break
 			}
 		}
-
 		url = urlU + urlL
-
-		for i := len(videoName) - 1; i >= 0; i-- {
-			if videoName[i] == '<' {
-				videoName = videoName[:i]
-				break
-			}
-		}
-
-		for i := len(videoName) - 1; i >= 0; i-- {
-			if videoName[i] == '>' {
-				videoName = videoName[i+1:]
-				break
-			}
-		}
 
 		url = fmt.Sprintf("%s", url)
 		c <- extractor.SubscriptMsg{Msg: "Finishd parsing gif url", Duration: time.Now().Sub(now)}
