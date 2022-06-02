@@ -24,7 +24,7 @@ func TestExtrac(t *testing.T) {
 			rowURL: "https://www.reddit.com/r/DotA2/comments/uq012r/til_how_useful_hurricane_bird_is/?utm_medium=android_app&utm_source=share",
 		},
 	}
-	c := make(chan extractor.SubscriptMsg, 10)
+	c := make(chan extractor.SubscriptMsg, 20)
 	for i, testCase := range testCases {
 		fmt.Println("test:", i)
 		data, err := New().ExtractRowURL(testCase.rowURL, c)

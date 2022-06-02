@@ -13,7 +13,7 @@
 ## Related Project
 [bubbletea](https://github.com/charmbracelet/bubbletea)
 
-[lux](https://github.com/iawia002/lux)
+[lux](https://github.com/iawia002/lux) <-- I made a pr their to support download video image gif there,they also support many other different website
 
 ## Demo
 ![](gif/demo.gif)

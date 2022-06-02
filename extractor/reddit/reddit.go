@@ -89,6 +89,7 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 	} else if fileType == "gif" {
 		url, urlU, urlL := "", "", ""
 		url = utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)[0]
+		fmt.Println(url)
 		if url == "" {
 			panic("can't match anything")
 		}
