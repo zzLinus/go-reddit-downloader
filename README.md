@@ -4,8 +4,8 @@
 # TUI Reddit Downloader
 * gif download(but it will end up as a mp4 file)
 * mp4 video download(need ffmpeg to merge the video and audio file)
+* img download
  
-**(there is always a img download option in reddit so i guess we don't need this function)** 
 
 ## Dependences 
 [ffmpeg](https://github.com/FFmpeg/FFmpeg)
@@ -13,7 +13,7 @@
 ## Related Project
 [bubbletea](https://github.com/charmbracelet/bubbletea)
 
-[lux](https://github.com/iawia002/lux) <-- I made a pr their to support download video image gif there,they also support many other different website
+[lux](https://github.com/iawia002/lux) <-- I made a pr there to support download video image and gif ,they also support many other different website
 
 ## Demo
 ![](gif/demo.gif)

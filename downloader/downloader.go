@@ -61,7 +61,7 @@ func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, err
 	}
 
 	//if there is no such file create one and give it right
-	videoFile, err := os.OpenFile("video.mp4", os.O_RDWR|os.O_CREATE, 0644)
+	videoFile, err := os.OpenFile("video."+data.FileType, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatal("failed to create files")
 		return 0, err
@@ -87,11 +87,13 @@ func (*Downloader) Download(url string, c chan extractor.SubscriptMsg) (int, err
 
 	filep = append(filep, videoFile.Name())
 
-	mergErr := utils.MergeAudioVideo(filep, data.VideoName+".mp4")
-	c <- extractor.SubscriptMsg{Msg: "Merging video with audio", Duration: time.Now().Sub(now)}
-	now = time.Now()
-	if mergErr != nil {
-		log.Fatal("can't merg audio with video")
+	if data.FileType != "jpg" {
+		mergErr := utils.MergeAudioVideo(filep, data.VideoName+".mp4")
+		c <- extractor.SubscriptMsg{Msg: "Merging video with audio", Duration: time.Now().Sub(now)}
+		now = time.Now()
+		if mergErr != nil {
+			log.Fatal("can't merg audio with video")
+		}
 	}
 
 	time.Sleep(3 * time.Second)

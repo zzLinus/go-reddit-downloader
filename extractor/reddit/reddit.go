@@ -2,8 +2,10 @@ package reddit
 
 import (
 	"crypto/tls"
+	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"fmt"
@@ -17,6 +19,7 @@ import (
 
 const (
 	redditMP4API = "https://v.redd.it/"
+	redditIMGAPI = "https://i.redd.it/"
 	audioURLPart = "/DASH_audio.mp4"
 	res720       = "/DASH_720.mp4"
 	res480       = "/DASH_480.mp4"
@@ -41,15 +44,17 @@ func (*redditExtractor) ExtractRowURL(rowURL string, c chan extractor.SubscriptM
 		return &extractor.Data{}, err
 	}
 
-	return getData(html, c), nil
+	return getData(html, c)
 }
 
-func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
+func getData(html string, c chan extractor.SubscriptMsg) (*extractor.Data, error) {
 	now := time.Now()
 	var fileType = ""
 	videoName := utils.MatchOneOf(html, `<title>(.+?)<\/title>`)[1]
 	if utils.MatchOneOf(html, `meta property="og:video" content=.*HLSPlaylist`) != nil {
 		fileType = "mp4"
+	} else if utils.MatchOneOf(html, `<meta property="og:type" content="image"/>`) != nil {
+		fileType = "img"
 	} else if utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*gif`) != nil {
 		fileType = "gif"
 	}
@@ -57,24 +62,12 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 	if fileType == "mp4" {
 		url := utils.MatchOneOf(html, `https://v.redd.it/(.+?)/HLSPlaylist`)[1]
 		if url == "" {
-			panic("can't match anything")
+			log.Fatal("can't match mp4 downloadable url")
+			return nil, errors.New("can't match mp4 downloadable url")
 		}
 		c <- extractor.SubscriptMsg{Msg: "Parsing mp4 url", Duration: time.Now().Sub(now)}
 		now = time.Now()
 
-		for i := len(videoName) - 1; i >= 0; i-- {
-			if videoName[i] == '<' {
-				videoName = videoName[:i]
-				break
-			}
-		}
-
-		for i := len(videoName) - 1; i >= 0; i-- {
-			if videoName[i] == '>' {
-				videoName = videoName[i+1:]
-				break
-			}
-		}
 		c <- extractor.SubscriptMsg{Msg: "Finish parsing mp4 url", Duration: time.Now().Sub(now)}
 		now = time.Now()
 
@@ -85,38 +78,36 @@ func getData(html string, c chan extractor.SubscriptMsg) *extractor.Data {
 			VideoName:       videoName,
 			DownloadableURL: videoURL,
 			AudioURL:        audioURL,
-		}
+		}, nil
 	} else if fileType == "gif" {
-		url, urlU, urlL := "", "", ""
-		url = utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)[0]
+		url := utils.MatchOneOf(html, `https:\/\/preview\.redd\.it\/.*?\.gif\?format=mp4.*?"`)[0]
 		fmt.Println(url)
 		if url == "" {
-			panic("can't match anything")
+			log.Fatal("can't match git downloadable url")
+			return nil, errors.New("can't match git downloadable url")
 		}
 		c <- extractor.SubscriptMsg{Msg: "Parsing gif url", Duration: time.Now().Sub(now)}
 		now = time.Now()
-		for i := len(url) - 1; i >= 0; i-- {
-			if url[i] == '&' {
-				urlU = url[:i+1]
-				break
-			}
-		}
-		for i := len(url) - 1; i >= 0; i-- {
-			if url[i] == ';' {
-				urlL = url[i+1 : len(url)-1]
-				break
-			}
-		}
-		url = urlU + urlL
 
-		url = fmt.Sprintf("%s", url)
+		url = strings.ReplaceAll(url, "&amp;", "&")
+		url = strings.ReplaceAll(url, "\"", "")
+
 		c <- extractor.SubscriptMsg{Msg: "Finishd parsing gif url", Duration: time.Now().Sub(now)}
 		now = time.Now()
 
 		// warning:i don't know why the .gif can't open after downloaded,but after rename it as .mp4 it dose play
-		return &extractor.Data{FileType: "mp4", VideoName: videoName, DownloadableURL: url}
+		return &extractor.Data{FileType: "mp4", VideoName: videoName, DownloadableURL: url}, nil
+	} else if fileType == "img" {
+		var url string
+		if utils.MatchOneOf(html, `content":"https:\/\/i.redd.it\/(.+?)","type":"image"`) != nil {
+			url = redditIMGAPI + utils.MatchOneOf(html, `content":"https:\/\/i.redd.it\/(.+?)","type":"image"`)[1]
+		} else {
+			url = utils.MatchOneOf(html, `content":"(.+?)","type":"image"`)[1]
+			url = strings.ReplaceAll(url, "auto=webp\\u0026s", "auto=webp&s")
+		}
+		return &extractor.Data{FileType: "jpg", VideoName: videoName, DownloadableURL: url}, nil
 	}
-	return &extractor.Data{}
+	return nil, nil
 }
 
 func getHTMLPage(rowURL string, c chan extractor.SubscriptMsg) (string, error) {
